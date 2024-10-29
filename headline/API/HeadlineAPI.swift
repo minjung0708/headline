@@ -70,11 +70,6 @@ extension HeadlineAPI {
             request.timeoutInterval = 10
         }
         .validate()
-        .responseString { response in
-            if let data = response.data, let string = String(data: data, encoding: .utf8) {
-                print(string)
-            }
-        }
         .publishDecodable(type: HeadlineResult.self)
         .value()
     }
