@@ -11,7 +11,7 @@ import SwiftUI
 struct headlineApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HeadlineView(viewModel: HeadlineViewModel())
         }
     }
 }
