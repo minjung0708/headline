@@ -30,11 +30,13 @@ class HeadlineViewModel: ObservableObject {
         var imageUrl: String?
         var image: Image?
         var publised: String?
+        var url: String?
         var visited: Bool = false
     }
     
     init() {
         bindEvents()
+        requestHeadlines.send(.init(country: .us))
     }
 }
 
@@ -82,7 +84,8 @@ extension HeadlineViewModel {
                 title: article.title,
                 imageUrl: article.urlToImage,
                 image: await loadImage(article.urlToImage),
-                publised: article.publishedAt
+                publised: article.publishedAt,
+                url: article.url
             )
             result.append(item)
         }
@@ -91,7 +94,9 @@ extension HeadlineViewModel {
     }
     
     private func loadImage(_ imageUrl: String?) async -> Image? {
-        guard let imageUrl else { return nil }
+        guard let imageUrl else {
+            return nil
+        }
         
         guard let urlEncoeded = imageUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let url = URL(string: urlEncoeded) else {

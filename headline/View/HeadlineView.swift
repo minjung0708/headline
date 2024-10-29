@@ -15,19 +15,20 @@ struct HeadlineView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(spacing: 10) {
                     ForEach(viewModel.headlines) { headline in
-                        HeadlineItemView(headline: headline)
+                        NavigationLink(destination: HeadlineContentView(headline: headline)
+                            .navigationBarBackButtonHidden()
+                        ) {
+                            HeadlineItemView(headline: headline)
+                        }
                     }
                 }
                 .frame(width: UIScreen.main.bounds.width)
                 .background(
                     Color.gray.opacity(0.1)
                 )
+                .navigationTitle("News Today🗞️")
+                .navigationBarTitleDisplayMode(.automatic)
             }
-            .navigationTitle("News Today🗞️")
-            .navigationBarTitleDisplayMode(.automatic)
-        }
-        .onAppear {
-            viewModel.requestHeadlines.send(.init(country: .us))
         }
     }
 }
