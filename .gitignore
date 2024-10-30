@@ -1,6 +1,7 @@
 # Xcode Project
 **/*.xcodeproj/xcuserdata/
 **/*.xcodeproj/xcuserdata/**/xcschemes/*.plist
+**/*.xcodeproj/xcshareddata/xcschemes/*.xcscheme
 **/.swiftpm/xcode/xcuserdata/
 **/*.xcworkspace/xcuserdata/
 **/*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
