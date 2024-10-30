@@ -35,6 +35,7 @@ struct HeadlineView: View {
 
 struct HeadlineItemView: View {
     var headline: Headline
+    @State private var visited = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -60,7 +61,7 @@ struct HeadlineItemView: View {
                         .multilineTextAlignment(.leading)
                         .lineLimit(3)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(headline.visited ? .red : .black)
+                        .foregroundColor(visited ? .red : .black)
                     Spacer()
                 }
                 .padding(.horizontal, 10)
@@ -81,6 +82,9 @@ struct HeadlineItemView: View {
         .background(
             Color.white
         )
+        .onAppear {
+            visited = StorageUtil.shared.checkUserDefaults(headline)
+        }
     }
 }
 

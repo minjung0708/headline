@@ -48,6 +48,9 @@ struct HeadlineContentView: View {
                     })
             }
         }
+        .onAppear {
+            StorageUtil.shared.saveUserDefaults(headline)
+        }
     }
 }
 

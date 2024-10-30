@@ -17,7 +17,6 @@ class Headline: Object, ObjectKeyIdentifiable {
     @Persisted var imageUrl: String?
     @Persisted var publishedAt: Date?
     @Persisted var url: String?
-    @Persisted var visited: Bool = false
     @Persisted var createdAt = Date()
     
     var publishedAtText: String? {
@@ -212,5 +211,20 @@ extension StorageUtil {
             }.resume()
         }
     }
+}
 
+// UserDefaults
+
+extension StorageUtil {
+    func saveUserDefaults(_ headline: Headline) {
+        guard let url = headline.url else { return }
+        UserDefaults.standard.setValue(Date.now, forKey: url)
+    }
+    
+    func checkUserDefaults(_ headline: Headline) -> Bool {
+        guard let url = headline.url else {
+            return false
+        }
+        return (UserDefaults.standard.value(forKey: url) as? Date != nil)
+    }
 }
