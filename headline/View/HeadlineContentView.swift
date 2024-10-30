@@ -9,20 +9,20 @@ import SwiftUI
 import WebKit
 
 struct HeadlineContentView: View {
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    var headline: HeadlineViewModel.Headline
+    @Environment(\.dismiss) private var dismiss
+    @State private var showAlert = false
     var headline: Headline
     
     var body: some View {
         NavigationView {
-            if let urlString = headline.url, let url = URL(string: urlString) {
+            if let urlString = headline.url, let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
                 HeadlineWebview(url: url)
                     .navigationTitle(headline.title ?? "")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .topBarLeading) {
                             Button {
-                                presentationMode.wrappedValue.dismiss()
+                                dismiss()
                             } label: {
                                 Image(systemName: "chevron.left")
                                     .font(.system(size: 16, weight: .medium))
@@ -31,6 +31,21 @@ struct HeadlineContentView: View {
                         }
                     }
                     .ignoresSafeArea()
+            } else {
+                Color.clear
+                    .navigationTitle(headline.title ?? "")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .onAppear {
+                        showAlert = true
+                    }
+                    .alert(isPresented: $showAlert, content: {
+                        Alert(
+                            title: Text("URL Error"),
+                            message: Text("URL is wrong.\nGo to the previous page."),
+                            dismissButton: .default(Text("go back"), action: {
+                                dismiss()
+                            }))
+                    })
             }
         }
     }
