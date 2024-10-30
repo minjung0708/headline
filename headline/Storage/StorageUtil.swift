@@ -9,6 +9,7 @@ import Foundation
 import RealmSwift
 import Combine
 import SwiftUI
+import CryptoKit
 
 class Headline: Object, ObjectKeyIdentifiable {
     @Persisted(primaryKey: true) var id = UUID()
@@ -30,8 +31,14 @@ class Headline: Object, ObjectKeyIdentifiable {
     }
     
     var image: Image? {
-        // TODO: 이미지 document 캐싱 로직 추가
-        return nil
+        StorageUtil.shared.loadSavedImageFromDocument(self)
+    }
+    
+    var imageName: String? {
+        guard let imageUrl else { return nil }
+        guard let data = imageUrl.data(using: .utf8) else { return nil }
+        let sha256 = SHA256.hash(data: data).compactMap { String(format: "%02x", $0) }.joined()
+        return "thumbnail_" + sha256 + ".png"
     }
 }
 
@@ -43,6 +50,8 @@ class StorageUtil {
         }
     }
 }
+
+// Realm
 
 extension StorageUtil {
     func saveItems(_ items: [Headline]) -> AnyPublisher<Bool, Never> {
@@ -110,4 +119,98 @@ extension StorageUtil {
         }
         .eraseToAnyPublisher()
     }
+}
+
+// Document
+
+extension StorageUtil {
+    func saveImageToDocument(_ headline: Headline) async -> Bool {
+        guard let image = await loadImage(headline.imageUrl) else {
+            return false
+        }
+        
+        guard let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return false
+        }
+        
+        guard let imageName = headline.imageName else {
+            return false
+        }
+        
+        let imageDirectory = documentDirectory.appendingPathComponent(imageName)
+        
+        if FileManager.default.fileExists(atPath: imageDirectory.path) {
+            print("[SAVE] image is already saved in \(imageDirectory.path)")
+            return true
+        }
+        
+        guard let data = image.pngData() else {
+            return false
+        }
+        
+        do {
+            try data.write(to: imageDirectory)
+            print("[SAVE] image save in \(imageDirectory.path)")
+        } catch {
+            return false
+        }
+        
+        return true
+    }
+    
+    func loadSavedImageFromDocument(_ headline: Headline) -> Image? {
+        let documentDirectory = FileManager.SearchPathDirectory.documentDirectory
+        let userDomainMask = FileManager.SearchPathDomainMask.userDomainMask
+        let path = NSSearchPathForDirectoriesInDomains(documentDirectory, userDomainMask, true)
+        
+        if let directoryPath = path.first, let imageName = headline.imageName {
+            let imageURL = URL(fileURLWithPath: directoryPath).appendingPathComponent(imageName)
+            if let uiImage = UIImage(contentsOfFile: imageURL.path) {
+                return Image(uiImage: uiImage)
+            } else {
+                return nil
+            }
+        }
+        
+        return nil
+    }
+    
+    func deleteAllSavedImageInDocument() -> Bool {
+        guard let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return false
+        }
+        
+        do {
+            let files = try FileManager.default.contentsOfDirectory(at: documentDirectory, includingPropertiesForKeys: nil)
+            for file in files where file.lastPathComponent.hasPrefix("thumbnail_") {
+                try FileManager.default.removeItem(at: file)
+            }
+        } catch {
+            return false
+        }
+        
+        return true
+    }
+    
+    private func loadImage(_ imageUrl: String?) async -> UIImage? {
+        guard let imageUrl else {
+            return nil
+        }
+        
+        guard let urlEncoeded = imageUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: urlEncoeded) else {
+            return nil
+        }
+        
+        return await withCheckedContinuation { continuation in
+            URLSession.shared.downloadTask(with: url) { url, response, error in
+                if let url, let data = try? Data(contentsOf: url), let uiImage = UIImage(data: data) {
+                    return continuation.resume(returning: uiImage)
+                } else {
+                    return continuation.resume(returning: nil)
+                }
+            }.resume()
+        }
+    }
+
 }

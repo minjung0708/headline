@@ -65,17 +65,24 @@ extension HeadlineViewModel {
                     status = .error
                     return
                 }
+                
                 Task { [weak self] in
                     guard let self else { return }
-                    let headlines = await convertData(result)
+                    var headlines: [Headline] = []
                     
-                    Task { @MainActor [weak self] in
-                        guard let self else { return }
-                        self.status = .finished
-                        self.headlines = headlines
-                        completeRequestHeadlines.send(headlines)
+                    for article in result.articles ?? [] {
+                        headlines.append(await convertData(article))
+                        let clones = headlines
+                        
+                        Task { @MainActor [weak self] in
+                            guard let self else { return }
+                            self.headlines = clones
+                        }
                     }
                 }
+                
+                status = .finished
+                completeRequestHeadlines.send(headlines)
             }
             .store(in: &cancellableSet)
         
@@ -95,19 +102,17 @@ extension HeadlineViewModel {
             .store(in: &cancellableSet)
     }
     
-    private func convertData(_ data: HeadlineResult) async -> [Headline] {
-        var result: [Headline] = []
-        
-        for article in data.articles ?? [] {
-            let item = Headline()
-            item.title = article.title
-            item.imageUrl = article.urlToImage
-            item.publishedAt = convertPublisedDate(article.publishedAt)
-            item.url = article.url
-            result.append(item)
+    private func convertData(_ article: Article) async -> Headline {
+        let item = Headline()
+        item.title = article.title
+        item.imageUrl = article.urlToImage
+        item.publishedAt = convertPublisedDate(article.publishedAt)
+        item.url = article.url
+        if item.image == nil {
+            _ = await StorageUtil.shared.saveImageToDocument(item)
         }
         
-        return result
+        return item
     }
     
     private func convertPublisedDate(_ dateString: String?) -> Date? {
@@ -118,27 +123,5 @@ extension HeadlineViewModel {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
         return formatter.date(from: dateString)
-    }
-    
-    private func loadImage(_ imageUrl: String?) async -> Image? {
-        guard let imageUrl else {
-            return nil
-        }
-        
-        guard let urlEncoeded = imageUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: urlEncoeded) else {
-            return nil
-        }
-        
-        return await withCheckedContinuation { continuation in
-            URLSession.shared.downloadTask(with: url) { url, response, error in
-                if let url, let data = try? Data(contentsOf: url), let uiImage = UIImage(data: data) {
-                    let image = Image(uiImage: uiImage)
-                    return continuation.resume(returning: image)
-                } else {
-                    return continuation.resume(returning: nil)
-                }
-            }.resume()
-        }
     }
 }
