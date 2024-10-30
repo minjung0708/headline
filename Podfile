@@ -6,6 +6,6 @@ target 'headline' do
   use_frameworks!
 
   pod 'Alamofire', '~> 5.9.1'
-  pod 'Realm', '~> 20.0'
+  pod 'RealmSwift', '~> 20.0'
 
 end
