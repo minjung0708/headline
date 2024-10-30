@@ -34,7 +34,7 @@ struct HeadlineView: View {
 }
 
 struct HeadlineItemView: View {
-    var headline: HeadlineViewModel.Headline
+    var headline: Headline
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -66,7 +66,7 @@ struct HeadlineItemView: View {
                 .padding(.horizontal, 10)
             }
             
-            if let publised = headline.publised {
+            if let publised = headline.publishedAtText {
                 HStack {
                     Text(publised)
                         .lineLimit(1)

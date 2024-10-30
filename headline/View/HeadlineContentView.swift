@@ -11,6 +11,7 @@ import WebKit
 struct HeadlineContentView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     var headline: HeadlineViewModel.Headline
+    var headline: Headline
     
     var body: some View {
         NavigationView {
@@ -48,9 +49,8 @@ struct HeadlineWebview: UIViewRepresentable {
 }
 
 #Preview {
-    HeadlineContentView(headline: .init(
-        id: UUID(),
-        title: "Alleging ‘Russian special operation,’ Georgian president calls for protests over disputed election - CNN",
-        url: "https://www.cnn.com/2024/10/27/europe/georgia-election-russia-protests-intl-latam/index.html")
-    )
+    let headline = Headline()
+    headline.title = "Alleging ‘Russian special operation,’ Georgian president calls for protests over disputed election - CNN"
+    headline.url = "https://www.cnn.com/2024/10/27/europe/georgia-election-russia-protests-intl-latam/index.html"
+    return HeadlineContentView(headline: headline)
 }
