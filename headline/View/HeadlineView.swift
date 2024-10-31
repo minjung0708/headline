@@ -21,12 +21,17 @@ struct HeadlineView: View {
     var body: some View {
         NavigationView {
             Group {
-                switch orientaion {
-                case .portrait:
-                    PortraitView(viewModel: viewModel)
-                        .frame(width: screenSize.width)
-                case .landscape:
-                    LandscapeView(viewModel: viewModel)
+                if viewModel.headlines.isEmpty {
+                    EmptyDataView(viewModel: viewModel)
+                        .frame(width: screenSize.width, height: screenSize.height)
+                } else {
+                    switch orientaion {
+                    case .portrait:
+                        PortraitView(viewModel: viewModel)
+                            .frame(width: screenSize.width)
+                    case .landscape:
+                        LandscapeView(viewModel: viewModel)
+                    }
                 }
             }
             .background(
@@ -49,6 +54,26 @@ struct HeadlineView: View {
         .onChange(of: orientaion) { _ in
             guard let windowScene else { return }
             screenSize = windowScene.screen.bounds.size
+        }
+    }
+}
+
+struct EmptyDataView: View {
+    @StateObject var viewModel: HeadlineViewModel
+    
+    var body: some View {
+        VStack(spacing: 15) {
+            Spacer()
+            Text("😢 Data is emtpy 📭")
+                .font(.system(size: 20, weight: .semibold))
+            Button {
+                viewModel.changeCountry.send()
+            } label: {
+                Text("Change country \(viewModel.country == .kr ? "🇰🇷" : "🇺🇸") ▶️ \(viewModel.country == .kr ? "🇺🇸" : "🇰🇷")")
+                    .font(.system(size: 16, weight: .regular))
+            }
+            .disabled(viewModel.isLoading)
+            Spacer()
         }
     }
 }

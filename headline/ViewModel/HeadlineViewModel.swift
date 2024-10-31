@@ -10,25 +10,21 @@ import Combine
 import SwiftUI
 
 class HeadlineViewModel: ObservableObject {
-    @Published var status: ViewStatus = .loading
-    @Published var totalCount: Int = 0
-    @Published var headlines: [Headline] = []
+    @Published private(set) var country: HeadlineAPI.QueryParam.Country = .kr
+    @Published private(set) var totalCount: Int = 0
+    @Published private(set) var headlines: [Headline] = []
+    @Published private(set) var isLoading = false
     
     let loadSavedHeadlines = PassthroughSubject<Void, Never>()
     let requestHeadlines = PassthroughSubject<HeadlineAPI.RequestParams, Never>()
     let completeRequestHeadlines = PassthroughSubject<[Headline], Never>()
+    let changeCountry = PassthroughSubject<Void, Never>()
     
     private var cancellableSet: Set<AnyCancellable> = []
     
-    enum ViewStatus {
-        case loading
-        case finished
-        case error
-    }
-    
     init() {
         bindEvents()
-        requestHeadlines.send(.init(country: .us))
+        requestHeadlines.send(.init(country: country))
     }
 }
 
@@ -40,12 +36,15 @@ extension HeadlineViewModel {
             }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] headlines in
-                self?.headlines = headlines ?? []
+                guard let self else { return }
+                self.headlines = headlines ?? []
+                isLoading = false
             }
             .store(in: &cancellableSet)
         
         requestHeadlines
             .flatMap { [weak self] param in
+                self?.isLoading = true
                 if param.page == 0 {
                     self?.headlines = []
                 }
@@ -62,9 +61,9 @@ extension HeadlineViewModel {
             } receiveValue: { [weak self] result in
                 guard let self else { return }
                 guard result.status == "ok" else {
-                    status = .error
                     return
                 }
+                totalCount = result.totalResults ?? 0
                 
                 Task { [weak self] in
                     guard let self else { return }
@@ -81,7 +80,6 @@ extension HeadlineViewModel {
                     }
                 }
                 
-                status = .finished
                 completeRequestHeadlines.send(headlines)
             }
             .store(in: &cancellableSet)
@@ -89,6 +87,7 @@ extension HeadlineViewModel {
         completeRequestHeadlines
             .sink { [weak self] headlines in
                 guard let self else { return }
+                isLoading = false
                 StorageUtil.shared.deleteAllItems()
                     .filter { $0 == true }
                     .flatMap { _ in
@@ -98,6 +97,19 @@ extension HeadlineViewModel {
                         print("data is saved \(isSaved ? "successfully" : "fail")")
                     }
                     .store(in: &cancellableSet)
+            }
+            .store(in: &cancellableSet)
+        
+        changeCountry
+            .sink { [weak self] _ in
+                guard let self else { return }
+                switch country {
+                case .kr:
+                    country = .us
+                case .us:
+                    country = .kr
+                }
+                requestHeadlines.send(.init(country: country))
             }
             .store(in: &cancellableSet)
     }
