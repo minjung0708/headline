@@ -106,22 +106,12 @@ extension HeadlineViewModel {
         let item = Headline()
         item.title = article.title
         item.imageUrl = article.urlToImage
-        item.publishedAt = convertPublisedDate(article.publishedAt)
+        item.publishedAt = article.publishedAt
         item.url = article.url
         if item.image == nil {
             _ = await StorageUtil.shared.saveImageToDocument(item)
         }
         
         return item
-    }
-    
-    private func convertPublisedDate(_ dateString: String?) -> Date? {
-        guard let dateString else {
-            return nil
-        }
-        
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
-        return formatter.date(from: dateString)
     }
 }

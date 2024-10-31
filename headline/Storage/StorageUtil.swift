@@ -15,7 +15,7 @@ class Headline: Object, ObjectKeyIdentifiable {
     @Persisted(primaryKey: true) var id = UUID()
     @Persisted var title: String?
     @Persisted var imageUrl: String?
-    @Persisted var publishedAt: Date?
+    @Persisted var publishedAt: String?
     @Persisted var url: String?
     @Persisted var createdAt = Date()
     
@@ -23,10 +23,17 @@ class Headline: Object, ObjectKeyIdentifiable {
         guard let publishedAt else {
             return nil
         }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd a hh:mm"
-        formatter.locale = .current
-        return formatter.string(from: publishedAt)
+        
+        let stringToDateFormatter = DateFormatter()
+        stringToDateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        guard let date = stringToDateFormatter.date(from: publishedAt) else {
+            return nil
+        }
+        
+        let dateToStringFormatter = DateFormatter()
+        dateToStringFormatter.dateFormat = "yyyy-MM-dd a hh:mm"
+        dateToStringFormatter.locale = .current
+        return dateToStringFormatter.string(from: date)
     }
     
     var image: Image? {
@@ -37,11 +44,15 @@ class Headline: Object, ObjectKeyIdentifiable {
         guard let imageUrl else { return nil }
         guard let data = imageUrl.data(using: .utf8) else { return nil }
         let sha256 = SHA256.hash(data: data).compactMap { String(format: "%02x", $0) }.joined()
-        return "thumbnail_" + sha256 + ".png"
+        return StorageUtil.Constants.imagePrefix + sha256 + StorageUtil.Constants.extPng
     }
 }
 
 class StorageUtil {
+    enum Constants {
+        static let imagePrefix = "thumbnail_"
+        static let extPng = ".png"
+    }
     static let shared = StorageUtil()
     private init() {
         if let documentsDirectory = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first {
@@ -181,7 +192,7 @@ extension StorageUtil {
         
         do {
             let files = try FileManager.default.contentsOfDirectory(at: documentDirectory, includingPropertiesForKeys: nil)
-            for file in files where file.lastPathComponent.hasPrefix("thumbnail_") {
+            for file in files where file.lastPathComponent.hasPrefix(StorageUtil.Constants.imagePrefix) {
                 try FileManager.default.removeItem(at: file)
             }
         } catch {
