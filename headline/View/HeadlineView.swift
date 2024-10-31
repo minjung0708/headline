@@ -37,7 +37,7 @@ struct HeadlineView: View {
             .background(
                 Color.gray.opacity(0.1)
             )
-            .navigationTitle("News Today🗞️")
+            .navigationTitle("News Today🗞️ (\(viewModel.totalCount))")
             .navigationBarTitleDisplayMode(.automatic)
         }
         .onAppear {
@@ -69,7 +69,7 @@ struct EmptyDataView: View {
             Button {
                 viewModel.changeCountry.send()
             } label: {
-                Text("Change country \(viewModel.country == .kr ? "🇰🇷" : "🇺🇸") ▶️ \(viewModel.country == .kr ? "🇺🇸" : "🇰🇷")")
+                Text("Change country \(viewModel.requestParam.country == .kr ? "🇰🇷 ▶️ 🇺🇸" : "🇺🇸 ▶️ 🇰🇷")")
                     .font(.system(size: 16, weight: .regular))
             }
             .disabled(viewModel.isLoading)
@@ -89,6 +89,13 @@ struct PortraitView: View {
                         .navigationBarBackButtonHidden()
                     ) {
                         PortraitItemView(headline: headline)
+                            .onAppear {
+                                // 해당 아이템이 마지막 아이템일 때, 다음 페이지 데이터 호출
+                                guard !viewModel.isLoading && viewModel.headlines.count < viewModel.totalCount else { return }
+                                guard headline.id == viewModel.headlines.last?.id else { return }
+                                print("This is the last one!")
+                                viewModel.requestHeadlinesMore.send()
+                            }
                     }
                 }
             }
@@ -98,7 +105,7 @@ struct PortraitView: View {
 
 struct LandscapeView: View {
     @StateObject var viewModel: HeadlineViewModel
-    private let columns: [GridItem] = Array(repeating: .init(.flexible(), spacing: 10), count: 5)
+    private let columns: [GridItem] = Array(repeating: .init(.fixed(300), spacing: 10), count: 5)
     
     var body: some View {
         ScrollView([.vertical, .horizontal], showsIndicators: false) {
@@ -108,6 +115,13 @@ struct LandscapeView: View {
                         .navigationBarBackButtonHidden()
                     ) {
                         LandscapeItemView(headline: headline)
+                            .onAppear {
+                                // 해당 아이템이 마지막 아이템일 때, 다음 페이지 데이터 호출
+                                guard !viewModel.isLoading && viewModel.headlines.count < viewModel.totalCount else { return }
+                                guard headline.id == viewModel.headlines.last?.id else { return }
+                                print("This is the last one!")
+                                viewModel.requestHeadlinesMore.send()
+                            }
                     }
                 }
             }

@@ -30,7 +30,7 @@ class HeadlineAPI {
     struct RequestParams {
         var country: HeadlineAPI.QueryParam.Country
         var pageSize: Int = 20
-        var page: Int = 0
+        var page: Int = 1
     }
     
     enum NetworkError: Error {

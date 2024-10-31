@@ -13,6 +13,7 @@ import CryptoKit
 
 class Headline: Object, ObjectKeyIdentifiable {
     @Persisted(primaryKey: true) var id = UUID()
+    @Persisted var country: String?
     @Persisted var title: String?
     @Persisted var imageUrl: String?
     @Persisted var publishedAt: String?
@@ -77,7 +78,7 @@ extension StorageUtil {
                     
                     try? realm.write {
                         for item in clones {
-                            realm.add(item)
+                            realm.add(item, update: .modified)
                         }
                     }
                     print("[CREATE] Items' count: \(clones.count)")
@@ -88,7 +89,7 @@ extension StorageUtil {
         .eraseToAnyPublisher()
     }
     
-    func loadAllItems() -> AnyPublisher<[Headline]?, Never> {
+    func loadAllItems(_ country: HeadlineAPI.QueryParam.Country) -> AnyPublisher<[Headline]?, Never> {
         Deferred {
             Future { promise in
                 Task {
@@ -97,8 +98,8 @@ extension StorageUtil {
                         return
                     }
                     
-                    let results = realm.objects(Headline.self)
-                    print("[SELECT] Items' count: \(results.count)")
+                    let results = realm.objects(Headline.self).filter("country == '\(country.rawValue)'")
+                    print("[SELECT] Country \(country.rawValue) items' count: \(results.count)")
                     promise(.success(results.map { Headline(value: $0) }))
                 }
             }

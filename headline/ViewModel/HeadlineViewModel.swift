@@ -10,44 +10,63 @@ import Combine
 import SwiftUI
 
 class HeadlineViewModel: ObservableObject {
-    @Published private(set) var country: HeadlineAPI.QueryParam.Country = .kr
     @Published private(set) var totalCount: Int = 0
     @Published private(set) var headlines: [Headline] = []
     @Published private(set) var isLoading = false
+    @Published private(set) var requestParam: HeadlineAPI.RequestParams
     
     let loadSavedHeadlines = PassthroughSubject<Void, Never>()
     let requestHeadlines = PassthroughSubject<HeadlineAPI.RequestParams, Never>()
     let completeRequestHeadlines = PassthroughSubject<[Headline], Never>()
     let changeCountry = PassthroughSubject<Void, Never>()
+    let requestHeadlinesMore = PassthroughSubject<Void, Never>()
     
     private var cancellableSet: Set<AnyCancellable> = []
     
     init() {
+        requestParam = .init(country: .kr)
         bindEvents()
-        requestHeadlines.send(.init(country: country))
+        requestHeadlines.send(requestParam)
     }
 }
 
 extension HeadlineViewModel {
     private func bindEvents() {
         loadSavedHeadlines
-            .flatMap { _ in
-                return StorageUtil.shared.loadAllItems()
+            .map { [weak self] _ in
+                guard let self else { return nil }
+                return requestParam.country
+            }
+            .compactMap { $0 }
+            .flatMap { country in
+                return StorageUtil.shared.loadAllItems(country)
             }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] headlines in
                 guard let self else { return }
                 self.headlines = headlines ?? []
+                totalCount = headlines?.count ?? 0
                 isLoading = false
             }
             .store(in: &cancellableSet)
         
         requestHeadlines
-            .flatMap { [weak self] param in
-                self?.isLoading = true
-                if param.page == 0 {
-                    self?.headlines = []
+            .map { [weak self] param in
+                guard let self else {
+                    return nil
                 }
+                
+                requestParam = param
+                isLoading = true
+                
+                if param.page == 0 {
+                    headlines = []
+                }
+                
+                return param
+            }
+            .compactMap { $0 }
+            .flatMap { param in
                 return HeadlineAPI.shared.requestHeadlines(requestParams: param)
             }
             .sink { [weak self] result in
@@ -67,55 +86,83 @@ extension HeadlineViewModel {
                 
                 Task { [weak self] in
                     guard let self else { return }
-                    var headlines: [Headline] = []
-                    
+                    print("result count: \(result.articles?.count ?? 0)")
                     for article in result.articles ?? [] {
-                        headlines.append(await convertData(article))
-                        let clones = headlines
+                        let item = await convertData(article: article, country: requestParam.country)
+                        let clone = item
                         
                         Task { @MainActor [weak self] in
                             guard let self else { return }
-                            self.headlines = clones
+                            headlines.append(clone)
+                            print("list count: \(headlines.count)")
                         }
                     }
+                    
+                    completeRequestHeadlines.send(headlines)
                 }
-                
-                completeRequestHeadlines.send(headlines)
             }
             .store(in: &cancellableSet)
         
         completeRequestHeadlines
+            .receive(on: DispatchQueue.main)
+            .map { [weak self] headlines in
+                self?.isLoading = false
+                return headlines
+            }
+            .receive(on: DispatchQueue.global())
             .sink { [weak self] headlines in
                 guard let self else { return }
-                isLoading = false
-                StorageUtil.shared.deleteAllItems()
-                    .filter { $0 == true }
-                    .flatMap { _ in
-                        StorageUtil.shared.saveItems(headlines)
-                    }
-                    .sink { isSaved in
-                        print("data is saved \(isSaved ? "successfully" : "fail")")
-                    }
-                    .store(in: &cancellableSet)
+                
+                if headlines.isEmpty {
+                    StorageUtil.shared.deleteAllItems()
+                        .filter { $0 == true }
+                        .flatMap { _ in
+                            print("All data is deleted.")
+                            return StorageUtil.shared.saveItems(headlines)
+                        }
+                        .sink { isSaved in
+                            print("data is saved \(isSaved ? "successfully" : "fail")")
+                        }
+                        .store(in: &cancellableSet)
+                } else {
+                    StorageUtil.shared.saveItems(headlines)
+                        .sink { isSaved in
+                            print("data is saved \(isSaved ? "successfully" : "fail")")
+                        }
+                        .store(in: &cancellableSet)
+                }
             }
             .store(in: &cancellableSet)
         
         changeCountry
             .sink { [weak self] _ in
                 guard let self else { return }
-                switch country {
+                guard isLoading == false else { return }
+                
+                switch requestParam.country {
                 case .kr:
-                    country = .us
+                    requestHeadlines.send(.init(country: .us))
                 case .us:
-                    country = .kr
+                    requestHeadlines.send(.init(country: .kr))
                 }
-                requestHeadlines.send(.init(country: country))
+            }
+            .store(in: &cancellableSet)
+        
+        requestHeadlinesMore
+            .sink { [weak self] _ in
+                guard let self else { return }
+                requestHeadlines.send(.init(
+                    country: requestParam.country,
+                    pageSize: requestParam.pageSize,
+                    page: requestParam.page + 1)
+                )
             }
             .store(in: &cancellableSet)
     }
     
-    private func convertData(_ article: Article) async -> Headline {
+    private func convertData(article: Article, country: HeadlineAPI.QueryParam.Country) async -> Headline {
         let item = Headline()
+        item.country = country.rawValue
         item.title = article.title
         item.imageUrl = article.urlToImage
         item.publishedAt = article.publishedAt
