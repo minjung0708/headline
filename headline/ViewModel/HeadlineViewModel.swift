@@ -96,6 +96,7 @@ extension HeadlineViewModel {
                     }
                 case .failure(let error):
                     print(error.localizedDescription)
+                    ToastUtil.shared.show(msg: "실시간 데이터 조회에 실패했습니다.\n기기에 저장된 데이터를 조회합니다.")
                     loadSavedHeadlines.send()
                 }
             }

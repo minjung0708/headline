@@ -25,4 +25,12 @@ extension Color {
             static let background = Color("ItemImageBackground")
         }
     }
+    
+    enum Toast {
+        static let background = Color("ToastBackground")
+        
+        enum Text {
+            static let content = Color("ToastTextContent")
+        }
+    }
 }

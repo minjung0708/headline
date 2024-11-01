@@ -17,6 +17,8 @@
 		676CCA4A2CD11ACF00F8D048 /* HeadlineContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 676CCA492CD11ACF00F8D048 /* HeadlineContentView.swift */; };
 		676CCA4D2CD1C45D00F8D048 /* StorageUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 676CCA4C2CD1C45D00F8D048 /* StorageUtil.swift */; };
 		67960CBD2CD4B47E0045E081 /* Color+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67960CBC2CD4B47E0045E081 /* Color+Extension.swift */; };
+		67960CBF2CD4B9460045E081 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67960CBE2CD4B9460045E081 /* ToastView.swift */; };
+		67960CC12CD4BDC50045E081 /* ToastUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67960CC02CD4BDC50045E081 /* ToastUtil.swift */; };
 		E6291A352B7E0C19FFC5D7BB /* Pods_headline.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C2AAB6D50911499C5654D3A /* Pods_headline.framework */; };
 /* End PBXBuildFile section */
 
@@ -34,6 +36,8 @@
 		676CCA492CD11ACF00F8D048 /* HeadlineContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadlineContentView.swift; sourceTree = "<group>"; };
 		676CCA4C2CD1C45D00F8D048 /* StorageUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageUtil.swift; sourceTree = "<group>"; };
 		67960CBC2CD4B47E0045E081 /* Color+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extension.swift"; sourceTree = "<group>"; };
+		67960CBE2CD4B9460045E081 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
+		67960CC02CD4BDC50045E081 /* ToastUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastUtil.swift; sourceTree = "<group>"; };
 		90EA6923915AAAB2F547092D /* Pods-headline.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-headline.release.xcconfig"; path = "Target Support Files/Pods-headline/Pods-headline.release.xcconfig"; sourceTree = "<group>"; };
 		93FFC1EA304ACA7A490D1426 /* Pods-headline.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-headline.debug.xcconfig"; path = "Target Support Files/Pods-headline/Pods-headline.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -81,7 +85,7 @@
 			children = (
 				676CCA462CD0D84600F8D048 /* Info.plist */,
 				67960CBB2CD4B4690045E081 /* Extension */,
-				676CCA4B2CD1C41800F8D048 /* Storage */,
+				676CCA4B2CD1C41800F8D048 /* Util */,
 				676CCA432CD0D5BA00F8D048 /* API */,
 				676CCA402CD0D54200F8D048 /* Model */,
 				676CCA3F2CD0D53B00F8D048 /* ViewModel */,
@@ -106,6 +110,7 @@
 			children = (
 				676CCA272CD0C21000F8D048 /* HeadlineView.swift */,
 				676CCA492CD11ACF00F8D048 /* HeadlineContentView.swift */,
+				67960CBE2CD4B9460045E081 /* ToastView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -134,12 +139,13 @@
 			path = API;
 			sourceTree = "<group>";
 		};
-		676CCA4B2CD1C41800F8D048 /* Storage */ = {
+		676CCA4B2CD1C41800F8D048 /* Util */ = {
 			isa = PBXGroup;
 			children = (
 				676CCA4C2CD1C45D00F8D048 /* StorageUtil.swift */,
+				67960CC02CD4BDC50045E081 /* ToastUtil.swift */,
 			);
-			path = Storage;
+			path = Util;
 			sourceTree = "<group>";
 		};
 		67960CBB2CD4B4690045E081 /* Extension */ = {
@@ -280,6 +286,8 @@
 				676CCA262CD0C21000F8D048 /* headlineApp.swift in Sources */,
 				676CCA4D2CD1C45D00F8D048 /* StorageUtil.swift in Sources */,
 				676CCA422CD0D55700F8D048 /* HeadlineModel.swift in Sources */,
+				67960CBF2CD4B9460045E081 /* ToastView.swift in Sources */,
+				67960CC12CD4BDC50045E081 /* ToastUtil.swift in Sources */,
 				67960CBD2CD4B47E0045E081 /* Color+Extension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
