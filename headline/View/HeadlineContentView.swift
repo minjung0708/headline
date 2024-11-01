@@ -11,41 +11,44 @@ import WebKit
 struct HeadlineContentView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showAlert = false
-    var headline: Headline
+    let headline: Headline
     
     var body: some View {
         NavigationView {
-            if let urlString = headline.url, let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
-                HeadlineWebview(url: url)
-                    .navigationTitle(headline.title ?? "")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button {
-                                dismiss()
-                            } label: {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.accentColor)
-                            }
+            Group {
+                if let urlString = headline.url, let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
+                    HeadlineWebview(url: url)
+                } else {
+                    Color.clear
+                        .onAppear {
+                            showAlert = true
                         }
+                        .alert(isPresented: $showAlert, content: {
+                            Alert(
+                                title: Text("URL Error"),
+                                message: Text("URL is wrong.\nGo to the previous page."),
+                                dismissButton: .default(Text("go back"), action: {
+                                    dismiss()
+                                }))
+                        })
+                }
+            }
+            .ignoresSafeArea(.all, edges: [.bottom, .leading, .trailing])
+            .background(
+                Color.ScrollView.background
+            )
+            .navigationTitle(headline.title ?? "")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.accentColor)
                     }
-                    .ignoresSafeArea()
-            } else {
-                Color.clear
-                    .navigationTitle(headline.title ?? "")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .onAppear {
-                        showAlert = true
-                    }
-                    .alert(isPresented: $showAlert, content: {
-                        Alert(
-                            title: Text("URL Error"),
-                            message: Text("URL is wrong.\nGo to the previous page."),
-                            dismissButton: .default(Text("go back"), action: {
-                                dismiss()
-                            }))
-                    })
+                }
             }
         }
         .onAppear {

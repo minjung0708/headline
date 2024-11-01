@@ -16,6 +16,7 @@
 		676CCA482CD0E4DF00F8D048 /* HeadlineViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 676CCA472CD0E4DF00F8D048 /* HeadlineViewModel.swift */; };
 		676CCA4A2CD11ACF00F8D048 /* HeadlineContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 676CCA492CD11ACF00F8D048 /* HeadlineContentView.swift */; };
 		676CCA4D2CD1C45D00F8D048 /* StorageUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 676CCA4C2CD1C45D00F8D048 /* StorageUtil.swift */; };
+		67960CBD2CD4B47E0045E081 /* Color+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67960CBC2CD4B47E0045E081 /* Color+Extension.swift */; };
 		E6291A352B7E0C19FFC5D7BB /* Pods_headline.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C2AAB6D50911499C5654D3A /* Pods_headline.framework */; };
 /* End PBXBuildFile section */
 
@@ -32,6 +33,7 @@
 		676CCA472CD0E4DF00F8D048 /* HeadlineViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadlineViewModel.swift; sourceTree = "<group>"; };
 		676CCA492CD11ACF00F8D048 /* HeadlineContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadlineContentView.swift; sourceTree = "<group>"; };
 		676CCA4C2CD1C45D00F8D048 /* StorageUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageUtil.swift; sourceTree = "<group>"; };
+		67960CBC2CD4B47E0045E081 /* Color+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extension.swift"; sourceTree = "<group>"; };
 		90EA6923915AAAB2F547092D /* Pods-headline.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-headline.release.xcconfig"; path = "Target Support Files/Pods-headline/Pods-headline.release.xcconfig"; sourceTree = "<group>"; };
 		93FFC1EA304ACA7A490D1426 /* Pods-headline.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-headline.debug.xcconfig"; path = "Target Support Files/Pods-headline/Pods-headline.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -78,6 +80,7 @@
 			isa = PBXGroup;
 			children = (
 				676CCA462CD0D84600F8D048 /* Info.plist */,
+				67960CBB2CD4B4690045E081 /* Extension */,
 				676CCA4B2CD1C41800F8D048 /* Storage */,
 				676CCA432CD0D5BA00F8D048 /* API */,
 				676CCA402CD0D54200F8D048 /* Model */,
@@ -137,6 +140,14 @@
 				676CCA4C2CD1C45D00F8D048 /* StorageUtil.swift */,
 			);
 			path = Storage;
+			sourceTree = "<group>";
+		};
+		67960CBB2CD4B4690045E081 /* Extension */ = {
+			isa = PBXGroup;
+			children = (
+				67960CBC2CD4B47E0045E081 /* Color+Extension.swift */,
+			);
+			path = Extension;
 			sourceTree = "<group>";
 		};
 		AB644485E3E0FA002936E255 /* Pods */ = {
@@ -269,6 +280,7 @@
 				676CCA262CD0C21000F8D048 /* headlineApp.swift in Sources */,
 				676CCA4D2CD1C45D00F8D048 /* StorageUtil.swift in Sources */,
 				676CCA422CD0D55700F8D048 /* HeadlineModel.swift in Sources */,
+				67960CBD2CD4B47E0045E081 /* Color+Extension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -403,6 +415,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"headline/Preview Content\"";
+				DEVELOPMENT_TEAM = VP74FFT3ZZ;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -438,6 +451,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"headline/Preview Content\"";
+				DEVELOPMENT_TEAM = VP74FFT3ZZ;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;

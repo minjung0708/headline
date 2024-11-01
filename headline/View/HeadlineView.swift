@@ -27,15 +27,14 @@ struct HeadlineView: View {
                 } else {
                     switch orientaion {
                     case .portrait:
-                        PortraitView(viewModel: viewModel)
-                            .frame(width: screenSize.width)
+                        PortraitView(viewModel: viewModel, width: screenSize.width)
                     case .landscape:
                         LandscapeView(viewModel: viewModel)
                     }
                 }
             }
             .background(
-                Color.gray.opacity(0.1)
+                Color.ScrollView.background
             )
             .navigationTitle("News Today🗞️ (\(viewModel.totalCount))")
             .navigationBarTitleDisplayMode(.automatic)
@@ -80,6 +79,7 @@ struct EmptyDataView: View {
 
 struct PortraitView: View {
     @StateObject var viewModel: HeadlineViewModel
+    let width: CGFloat
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -88,7 +88,7 @@ struct PortraitView: View {
                     NavigationLink(destination: HeadlineContentView(headline: headline)
                         .navigationBarBackButtonHidden()
                     ) {
-                        PortraitItemView(headline: headline)
+                        PortraitItemView(headline: headline, width: width)
                             .onAppear {
                                 // 해당 아이템이 마지막 아이템일 때, 다음 페이지 데이터 호출
                                 guard !viewModel.isLoading && viewModel.headlines.count < viewModel.totalCount else { return }
@@ -130,7 +130,8 @@ struct LandscapeView: View {
 }
 
 struct PortraitItemView: View {
-    var headline: Headline
+    let headline: Headline
+    let width: CGFloat
     @State private var visited = false
     
     var body: some View {
@@ -139,16 +140,16 @@ struct PortraitItemView: View {
                 image
                     .resizable()
                     .scaledToFill()
-                    .frame(height: 200)
+                    .frame(width: width, height: 200)
                     .clipped()
             } else {
                 ZStack {
-                    Color.gray.opacity(0.5)
+                    Color.Item.Image.background
                     Text("Image not found")
                         .font(.system(size: 24, weight: .semibold))
                         .foregroundColor(.gray)
                 }
-                .frame(height: 200)
+                .frame(width: width, height: 200)
             }
             
             if let title = headline.title {
@@ -157,7 +158,7 @@ struct PortraitItemView: View {
                         .multilineTextAlignment(.leading)
                         .lineLimit(3)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(visited ? .red : .black)
+                        .foregroundColor(visited ? .red : Color.Item.Text.title)
                     Spacer()
                 }
                 .padding(.horizontal, 10)
@@ -168,7 +169,7 @@ struct PortraitItemView: View {
                     Text(publised)
                         .lineLimit(1)
                         .font(.system(size: 12, weight: .regular))
-                        .foregroundColor(.black)
+                        .foregroundColor(Color.Item.Text.publishedAt)
                     Spacer()
                 }
                 .padding(.horizontal, 10)
@@ -176,7 +177,7 @@ struct PortraitItemView: View {
             }
         }
         .background(
-            Color.white
+            Color.Item.background
         )
         .onAppear {
             visited = StorageUtil.shared.checkUserDefaults(headline)
@@ -185,7 +186,7 @@ struct PortraitItemView: View {
 }
 
 struct LandscapeItemView: View {
-    var headline: Headline
+    let headline: Headline
     @State private var visited = false
     
     var body: some View {
@@ -198,7 +199,7 @@ struct LandscapeItemView: View {
                     .clipped()
             } else {
                 ZStack {
-                    Color.gray.opacity(0.5)
+                    Color.Item.Image.background
                     Text("Image not found")
                         .font(.system(size: 24, weight: .semibold))
                         .foregroundColor(.gray)
@@ -215,7 +216,7 @@ struct LandscapeItemView: View {
                         .multilineTextAlignment(.leading)
                         .lineLimit(1)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(visited ? .red : .black)
+                        .foregroundColor(visited ? .red : Color.Item.Text.title)
                     Spacer()
                 }
                 .padding(.horizontal, 10)
@@ -226,7 +227,7 @@ struct LandscapeItemView: View {
                     Text(publised)
                         .lineLimit(1)
                         .font(.system(size: 11, weight: .regular))
-                        .foregroundColor(.black)
+                        .foregroundColor(Color.Item.Text.publishedAt)
                     Spacer()
                 }
                 .padding(.horizontal, 10)
@@ -235,7 +236,7 @@ struct LandscapeItemView: View {
         }
         .frame(width: 300, height: 120)
         .background(
-            Color.white
+            Color.Item.background
         )
         .onAppear {
             visited = StorageUtil.shared.checkUserDefaults(headline)
