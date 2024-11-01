@@ -38,6 +38,24 @@ struct HeadlineView: View {
             )
             .navigationTitle("News Today🗞️ (\(viewModel.totalCount))")
             .navigationBarTitleDisplayMode(.automatic)
+            .toolbar {
+                ToolbarItem(
+                    placement: .topBarTrailing) {
+                        Button {
+                            viewModel.changeCountry.send()
+                        } label: {
+                            switch viewModel.requestParam.country {
+                            case .kr:
+                                Text("🇰🇷")
+                                    .font(.system(size: 26))
+                            case .us:
+                                Text("🇺🇸")
+                                    .font(.system(size: 26))
+                            }
+                        }
+                        .disabled(viewModel.isLoading)
+                    }
+            }
         }
         .onAppear {
             guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -65,13 +83,6 @@ struct EmptyDataView: View {
             Spacer()
             Text("😢 Data is emtpy 📭")
                 .font(.system(size: 20, weight: .semibold))
-            Button {
-                viewModel.changeCountry.send()
-            } label: {
-                Text("Change country \(viewModel.requestParam.country == .kr ? "🇰🇷 ▶️ 🇺🇸" : "🇺🇸 ▶️ 🇰🇷")")
-                    .font(.system(size: 16, weight: .regular))
-            }
-            .disabled(viewModel.isLoading)
             Spacer()
         }
     }
