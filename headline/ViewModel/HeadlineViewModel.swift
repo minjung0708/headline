@@ -34,8 +34,7 @@ extension HeadlineViewModel {
     private func bindEvents() {
         loadSavedHeadlines
             .map { [weak self] _ in
-                guard let self else { return nil }
-                return requestParam.country
+                return self?.requestParam.country
             }
             .compactMap { $0 }
             .flatMap { country in
@@ -59,7 +58,7 @@ extension HeadlineViewModel {
                 requestParam = param
                 isLoading = true
                 
-                if param.page == 0 {
+                if param.page == 1 {
                     headlines = []
                 }
                 
@@ -69,36 +68,35 @@ extension HeadlineViewModel {
             .flatMap { param in
                 return HeadlineAPI.shared.requestHeadlines(requestParams: param)
             }
-            .sink { [weak self] result in
-                switch result {
-                case .finished:
-                    print("headlines request api call is finished.")
-                case .failure(let failure):
-                    print(failure.localizedDescription)
-                    self?.loadSavedHeadlines.send()
-                }
-            } receiveValue: { [weak self] result in
+            .sink { [weak self] response in
                 guard let self else { return }
-                guard result.status == "ok" else {
-                    return
-                }
-                totalCount = result.totalResults ?? 0
                 
-                Task { [weak self] in
-                    guard let self else { return }
-                    print("result count: \(result.articles?.count ?? 0)")
-                    for article in result.articles ?? [] {
-                        let item = await convertData(article: article, country: requestParam.country)
-                        let clone = item
-                        
-                        Task { @MainActor [weak self] in
-                            guard let self else { return }
-                            headlines.append(clone)
-                            print("list count: \(headlines.count)")
-                        }
-                    }
+                switch response {
+                case.success(let result):
+                    guard result.status == "ok" else { return }
                     
-                    completeRequestHeadlines.send(headlines)
+                    totalCount = result.totalResults ?? 0
+                    
+                    Task { [weak self] in
+                        guard let self else { return }
+                        var newHeadlines: [Headline] = []
+                        
+                        for article in result.articles ?? [] {
+                            let item = await convertData(article: article, country: requestParam.country)
+                            let clone = item
+                            newHeadlines.append(clone)
+                            
+                            Task { @MainActor [weak self] in
+                                guard let self else { return }
+                                headlines.append(clone)
+                            }
+                        }
+                        
+                        completeRequestHeadlines.send(newHeadlines)
+                    }
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    loadSavedHeadlines.send()
                 }
             }
             .store(in: &cancellableSet)

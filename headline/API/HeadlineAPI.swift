@@ -40,16 +40,16 @@ class HeadlineAPI {
 }
 
 extension HeadlineAPI {
-    func requestHeadlines(requestParams: RequestParams) -> AnyPublisher<HeadlineResult, AFError> {
+    func requestHeadlines(requestParams: RequestParams) -> AnyPublisher<Result<HeadlineResult, AFError>, Never> {
         guard let plistUrl = Bundle.main.url(forResource: "Info", withExtension: "plist"),
               let plistData = try? Data(contentsOf: plistUrl),
               let dict = try? PropertyListSerialization.propertyList(from: plistData, format: nil) as? NSDictionary,
               let apiKey = dict["Api Key"] as? String else {
-            return Fail(error: .createURLRequestFailed(error: NetworkError.noApiKey)).eraseToAnyPublisher()
+            return Just<Result<HeadlineResult, AFError>>.init(.failure(.createURLRequestFailed(error: NetworkError.noApiKey))).eraseToAnyPublisher()
         }
         
         guard var components = URLComponents(string: headlineUrl) else {
-            return Fail(error: .createURLRequestFailed(error: NetworkError.incorrectUrl)).eraseToAnyPublisher()
+            return Just<Result<HeadlineResult, AFError>>.init(.failure(.createURLRequestFailed(error: NetworkError.incorrectUrl))).eraseToAnyPublisher()
         }
         
         components.queryItems = [
@@ -60,7 +60,7 @@ extension HeadlineAPI {
         ]
         
         guard let url = components.url else {
-            return Fail(error: .createURLRequestFailed(error: NetworkError.incorrectUrl)).eraseToAnyPublisher()
+            return Just<Result<HeadlineResult, AFError>>.init(.failure(.createURLRequestFailed(error: NetworkError.incorrectUrl))).eraseToAnyPublisher()
         }
         
         return AF.request(
@@ -71,6 +71,6 @@ extension HeadlineAPI {
         }
         .validate()
         .publishDecodable(type: HeadlineResult.self)
-        .value()
+        .result()
     }
 }
