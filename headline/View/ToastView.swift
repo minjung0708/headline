@@ -21,11 +21,10 @@ final class ToastViewController: UIHostingController<ToastView> {
 
 struct ToastView: View {
     let message: String
-    @State var backgroundColorOpacity = 0.9
     
     var body: some View {
         ZStack {
-            Color.Toast.background.opacity(backgroundColorOpacity)
+            Color.Toast.background.opacity(0.9)
             Text(message)
                 .font(Font.system(size: 15))
                 .foregroundColor(Color.Toast.Text.content)
