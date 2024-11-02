@@ -85,11 +85,9 @@ struct EmptyDataView: View {
     @StateObject var viewModel: HeadlineViewModel
     
     var body: some View {
-        VStack(spacing: 15) {
-            Spacer()
+        ZStack {
             Text("😢 Data is emtpy 📭")
                 .font(.system(size: 20, weight: .semibold))
-            Spacer()
         }
     }
 }
@@ -110,7 +108,6 @@ struct PortraitView: View {
                                 // 해당 아이템이 마지막 아이템일 때, 다음 페이지 데이터 호출
                                 guard !viewModel.isLoading && viewModel.headlines.count < viewModel.totalCount else { return }
                                 guard headline.id == viewModel.headlines.last?.id else { return }
-                                print("This is the last one!")
                                 viewModel.requestHeadlinesMore.send()
                             }
                     }
@@ -136,7 +133,6 @@ struct LandscapeView: View {
                                 // 해당 아이템이 마지막 아이템일 때, 다음 페이지 데이터 호출
                                 guard !viewModel.isLoading && viewModel.headlines.count < viewModel.totalCount else { return }
                                 guard headline.id == viewModel.headlines.last?.id else { return }
-                                print("This is the last one!")
                                 viewModel.requestHeadlinesMore.send()
                             }
                     }
@@ -149,7 +145,7 @@ struct LandscapeView: View {
 struct PortraitItemView: View {
     let headline: Headline
     let width: CGFloat
-    @State private var visited = false
+    @State private var isVisited = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -175,7 +171,7 @@ struct PortraitItemView: View {
                         .multilineTextAlignment(.leading)
                         .lineLimit(3)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(visited ? .red : Color.Item.Text.title)
+                        .foregroundColor(isVisited ? .red : Color.Item.Text.title)
                     Spacer()
                 }
                 .padding(.horizontal, 10)
@@ -197,7 +193,7 @@ struct PortraitItemView: View {
             Color.Item.background
         )
         .onAppear {
-            visited = StorageUtil.shared.checkUserDefaults(headline)
+            isVisited = StorageUtil.shared.checkUserDefaults(headline)
         }
     }
 }
