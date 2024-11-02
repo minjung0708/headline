@@ -25,16 +25,15 @@ class Headline: Object, ObjectKeyIdentifiable {
             return nil
         }
         
-        let stringToDateFormatter = DateFormatter()
-        stringToDateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
-        guard let date = stringToDateFormatter.date(from: publishedAt) else {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        
+        guard let date = formatter.date(from: publishedAt) else {
             return nil
         }
         
-        let dateToStringFormatter = DateFormatter()
-        dateToStringFormatter.dateFormat = "yyyy-MM-dd a hh:mm"
-        dateToStringFormatter.locale = .current
-        return dateToStringFormatter.string(from: date)
+        formatter.dateFormat = "yyyy-MM-dd a hh:mm"
+        return formatter.string(from: date)
     }
     
     var image: Image? {
