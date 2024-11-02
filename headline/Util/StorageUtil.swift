@@ -41,10 +41,13 @@ class Headline: Object, ObjectKeyIdentifiable {
     }
     
     var imageName: String? {
-        guard let imageUrl else { return nil }
-        guard let data = imageUrl.data(using: .utf8) else { return nil }
-        let sha256 = SHA256.hash(data: data).compactMap { String(format: "%02x", $0) }.joined()
-        return StorageUtil.Constants.imagePrefix + sha256 + StorageUtil.Constants.extPng
+        guard let imageUrl,
+              let data = imageUrl.data(using: .utf8) else {
+            return nil
+        }
+        
+        let output = SHA256.hash(data: data).compactMap { String(format: "%02x", $0) }.joined()
+        return StorageUtil.Constants.imagePrefix + output + StorageUtil.Constants.extPng
     }
 }
 
@@ -54,11 +57,7 @@ class StorageUtil {
         static let extPng = ".png"
     }
     static let shared = StorageUtil()
-    private init() {
-        if let documentsDirectory = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first {
-            print(documentsDirectory)
-        }
-    }
+    private init() { }
 }
 
 // Realm
@@ -80,7 +79,7 @@ extension StorageUtil {
                             realm.add(item, update: .modified)
                         }
                     }
-                    print("[CREATE] Items' count: \(clones.count)")
+                    
                     promise(.success(true))
                 }
             }
@@ -98,7 +97,6 @@ extension StorageUtil {
                     }
                     
                     let results = realm.objects(Headline.self).filter("country == '\(country.rawValue)'")
-                    print("[SELECT] Country \(country.rawValue) items' count: \(results.count)")
                     promise(.success(results.map { Headline(value: $0) }))
                 }
             }
@@ -108,7 +106,7 @@ extension StorageUtil {
     
     func deleteAllItems() -> AnyPublisher<Bool, Never> {
         Deferred {
-            Future<Bool, Never> { promise in
+            Future { promise in
                 Task {
                     guard let realm = try? Realm() else {
                         promise(.success(false))
@@ -122,7 +120,7 @@ extension StorageUtil {
                             realm.delete(item)
                         }
                     }
-                    print("[DELETE] Items' count: \(items.count)")
+                    
                     promise(.success(true))
                 }
             }
@@ -134,8 +132,9 @@ extension StorageUtil {
 // Document
 
 extension StorageUtil {
-    func saveImageToDocument(_ headline: Headline) async -> Bool {
-        guard let image = await loadImage(headline.imageUrl) else {
+    func saveImageInDocument(_ headline: Headline) async -> Bool {
+        guard let image = await loadImage(headline.imageUrl),
+              let imageName = headline.imageName else {
             return false
         }
         
@@ -143,14 +142,10 @@ extension StorageUtil {
             return false
         }
         
-        guard let imageName = headline.imageName else {
-            return false
-        }
-        
         let imageDirectory = documentDirectory.appendingPathComponent(imageName)
         
         if FileManager.default.fileExists(atPath: imageDirectory.path) {
-            print("[SAVE] image is already saved in \(imageDirectory.path)")
+            // 저장하려는 경로에 이미 이미지가 존재하는 경우 저장 과정을 거치지 않고 함수 종료
             return true
         }
         
@@ -160,7 +155,6 @@ extension StorageUtil {
         
         do {
             try data.write(to: imageDirectory)
-            print("[SAVE] image save in \(imageDirectory.path)")
         } catch {
             return false
         }
@@ -169,20 +163,18 @@ extension StorageUtil {
     }
     
     func loadSavedImageFromDocument(_ headline: Headline) -> Image? {
-        let documentDirectory = FileManager.SearchPathDirectory.documentDirectory
-        let userDomainMask = FileManager.SearchPathDomainMask.userDomainMask
-        let path = NSSearchPathForDirectoriesInDomains(documentDirectory, userDomainMask, true)
-        
-        if let directoryPath = path.first, let imageName = headline.imageName {
-            let imageURL = URL(fileURLWithPath: directoryPath).appendingPathComponent(imageName)
-            if let uiImage = UIImage(contentsOfFile: imageURL.path) {
-                return Image(uiImage: uiImage)
-            } else {
-                return nil
-            }
+        guard let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
+              let imageName = headline.imageName else {
+            return nil
         }
         
-        return nil
+        let imageDirectory = documentDirectory.appendingPathComponent(imageName)
+        
+        if let uiImage = UIImage(contentsOfFile: imageDirectory.path) {
+            return Image(uiImage: uiImage)
+        } else {
+            return nil
+        }
     }
     
     func deleteAllSavedImageInDocument() -> Bool {
@@ -203,17 +195,17 @@ extension StorageUtil {
     }
     
     private func loadImage(_ imageUrl: String?) async -> UIImage? {
-        guard let imageUrl else {
-            return nil
-        }
-        
-        guard let urlEncoeded = imageUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: urlEncoeded) else {
+        guard let imageUrl,
+              let url = URL(string: imageUrl) else {
             return nil
         }
         
         return await withCheckedContinuation { continuation in
             URLSession.shared.downloadTask(with: url) { url, response, error in
+                guard error == nil else {
+                    return continuation.resume(returning: nil)
+                }
+                
                 if let url, let data = try? Data(contentsOf: url), let uiImage = UIImage(data: data) {
                     return continuation.resume(returning: uiImage)
                 } else {
@@ -229,6 +221,7 @@ extension StorageUtil {
 extension StorageUtil {
     func saveUserDefaults(_ headline: Headline) {
         guard let url = headline.url else { return }
+        // UserDefaults에 [방문한 url 주소: 방문한 날짜] 저장
         UserDefaults.standard.setValue(Date.now, forKey: url)
     }
     

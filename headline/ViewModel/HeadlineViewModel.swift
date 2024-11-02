@@ -167,7 +167,7 @@ extension HeadlineViewModel {
         item.publishedAt = article.publishedAt
         item.url = article.url
         if item.image == nil {
-            _ = await StorageUtil.shared.saveImageToDocument(item)
+            _ = await StorageUtil.shared.saveImageInDocument(item)
         }
         
         return item
