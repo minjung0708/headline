@@ -104,7 +104,7 @@ extension StorageUtil {
         .eraseToAnyPublisher()
     }
     
-    func deleteAllItems() -> AnyPublisher<Bool, Never> {
+    func deleteAllItems(_ country: HeadlineAPI.QueryParam.Country) -> AnyPublisher<Bool, Never> {
         Deferred {
             Future { promise in
                 Task {
@@ -113,7 +113,7 @@ extension StorageUtil {
                         return
                     }
                     
-                    let items = realm.objects(Headline.self)
+                    let items = realm.objects(Headline.self).filter("country == '\(country.rawValue)'")
                     
                     try? realm.write {
                         for item in items {
