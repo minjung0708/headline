@@ -15,7 +15,8 @@ enum Orientation {
 struct HeadlineView: View {
     @StateObject var viewModel: HeadlineViewModel
     @State private var windowScene: UIWindowScene?
-    @State private var orientaion: Orientation = .portrait
+    @State private var isNotificationBinded: Bool = false
+    @State private var orientation: Orientation = .portrait
     @State private var screenSize: CGSize = .zero
     
     var body: some View {
@@ -25,7 +26,7 @@ struct HeadlineView: View {
                     EmptyDataView(viewModel: viewModel)
                         .frame(width: screenSize.width, height: screenSize.height)
                 } else {
-                    switch orientaion {
+                    switch orientation {
                     case .portrait:
                         PortraitView(viewModel: viewModel, width: screenSize.width)
                     case .landscape:
@@ -56,21 +57,26 @@ struct HeadlineView: View {
                         .disabled(viewModel.isLoading)
                     }
             }
-        }
-        .onAppear {
-            guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                  let windowScene = scene.windows.first?.windowScene else { return }
-            self.windowScene = windowScene
-            orientaion = (windowScene.interfaceOrientation.isPortrait ? .portrait : .landscape)
-            screenSize = windowScene.screen.bounds.size
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-            guard let windowScene else { return }
-            orientaion = (windowScene.interfaceOrientation.isPortrait ? .portrait : .landscape)
-        }
-        .onChange(of: orientaion) { _ in
-            guard let windowScene else { return }
-            screenSize = windowScene.screen.bounds.size
+            .onAppear {
+                guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                      let firstWindowScene = scene.windows.first?.windowScene else { return }
+                
+                isNotificationBinded = true
+                windowScene = firstWindowScene
+                orientation = (firstWindowScene.interfaceOrientation.isPortrait ? .portrait : .landscape)
+                screenSize = firstWindowScene.screen.bounds.size
+            }
+            .onDisappear {
+                isNotificationBinded = false
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                guard let windowScene, isNotificationBinded == true else { return }
+                orientation = (windowScene.interfaceOrientation.isPortrait ? .portrait : .landscape)
+            }
+            .onChange(of: orientation) { _ in
+                guard let windowScene else { return }
+                screenSize = windowScene.screen.bounds.size
+            }
         }
     }
 }
